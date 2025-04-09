@@ -1,5 +1,7 @@
 # BYOVD POC
 
+This repo contains proof-of-concepts (PoCs) demonstrating BYOVD (Bring Your Own Vulnerable Driver) techniques by exploiting flaws in signed drivers. These drivers are either not included in [Microsoft's blocklist](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/design/microsoft-recommended-driver-block-rules#vulnerable-driver-blocklist-xml) or have been previously overlooked.
+
 ## POCs
 
 | Driver | Link | POC | Type | HVCI Blocked |
