@@ -14,6 +14,8 @@ This repo contains proof-of-concepts (PoCs) demonstrating BYOVD (Bring Your Own 
 
 ## Other Resources
 
+- https://vx-underground.org/Archive/Driver%20Collection
+- https://github.com/zeze-zeze/ioctlance
 - https://github.com/0xJs/BYOVD_EDRKiller/
 - https://github.com/BlackSnufkin/BYOVD
 
